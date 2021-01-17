@@ -11,16 +11,16 @@ class MetronomeEvents():
 
 class Metronome(Thread):
 
+    _dispatcher = {
+        MetronomeEvents.TICK: {},
+        MetronomeEvents.BEAT: {},
+        MetronomeEvents.BAR: {}
+    }
+
     def __init__(self, bpm=120, bpb=4, tpb=4):
         self._bpm = bpm
         self._bpb = bpb
         self._tpb = tpb
-
-        self._dispatcher = {
-            MetronomeEvents.TICK: {},
-            MetronomeEvents.BEAT: {},
-            MetronomeEvents.BAR: {}
-        }
 
         self._running = True
         self._paused = True
@@ -66,10 +66,10 @@ class Metronome(Thread):
         except KeyError:
             return False
 
-    def notify(self, event_type, data=None):
+    def notify(self, event_type, **kwargs):
         try:
             for name, subscriber in self._dispatcher[event_type].items():
-                subscriber.notify(data)
+                subscriber.notify(**kwargs)
             return True
         except KeyError:
             return False
@@ -99,11 +99,11 @@ class Metronome(Thread):
         self._set_delay()
 
     def inc_tick(self):
-        self.notify(MetronomeEvents.TICK, self._tick)
         self._tick += 1
         if self._tick % self._tpb == 0:
-            self.notify(MetronomeEvents.BEAT, self._beat)
             self._beat = (self._beat + 1) % self._bpb
+            self.notify(MetronomeEvents.BEAT, beat=self._beat)
             if self._beat == 0:
-                self.notify(MetronomeEvents.BAR, self._bar)
                 self._bar += 1
+                self.notify(MetronomeEvents.BAR, bar=self._bar)
+        self.notify(MetronomeEvents.TICK, tick=self._tick)

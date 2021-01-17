@@ -12,10 +12,10 @@ class Subscriber:
     def disable(self):
         self._enabled = False
 
-    def notify(self, data):
+    def notify(self, **kwargs):
         if self._enabled:
-            if data and self._with_data:
-                self._callback_method.__func__(self._callback_class, data)
+            if kwargs and self._with_data:
+                self._callback_method.__func__(self._callback_class, **kwargs)
             else:
                 self._callback_method.__func__(self._callback_class)
 

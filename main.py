@@ -3,27 +3,44 @@ from lpd8.programs import Programs
 from lpd8.pads import Pad, Pads
 from lpd8.knobs import Knobs
 from gui.screen import Screen
+from gui.w_bpm import W_Bpm
+from gui.w_metronome import W_Metronome
 from time import sleep
 import curses
 from osc import Osc_Interface
 from metronome.metronome import Metronome, MetronomeEvents
 
+DEFAULT_BPM = 120
+
+# Setting up the interface
 screen = Screen()
-screen.init_pair(1, 255, curses.COLOR_BLACK)
+w_bpm = W_Bpm()
+w_bpm.update()
+w_metronome = W_Metronome()
+w_metronome.update()
 
 lpd8 = LPD8()
 osc = Osc_Interface()
 metronome = Metronome()
 
 lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 30, 180, steps=160)
-lpd8.set_knob_value(Programs.PGM_4, Knobs.KNOB_1, 120)
+lpd8.set_knob_value(Programs.PGM_4, Knobs.KNOB_1, DEFAULT_BPM)
 lpd8.set_not_sticky_knob(Programs.PGM_4, Knobs.KNOB_1)
 lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_5, Pad.SWITCH_MODE + Pad.BLINK_MODE)
 lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.ON)
-lpd8.subscribe(metronome, metronome.set_bpm, Programs.PGM_4, LPD8.CTRL, Knobs.KNOB_1)
-lpd8.subscribe(metronome, metronome.pause, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_5)
+lpd8.subscribe(metronome, metronome.set_bpm, Programs.PGM_4, LPD8.CTRL,
+               Knobs.KNOB_1)
+lpd8.subscribe(w_bpm, w_bpm.bpm_update, Programs.PGM_4, LPD8.CTRL,
+               Knobs.KNOB_1)
+lpd8.subscribe(metronome, metronome.pause, Programs.PGM_4, LPD8.NOTE_ON,
+               Pads.PAD_5)
 metronome.subscribe(MetronomeEvents.BEAT, 'BLINK', lpd8, lpd8.pad_update)
-
+metronome.subscribe(MetronomeEvents.TICK, 'WM_TICK', w_metronome,
+                    w_metronome.tick_update, with_data=True)
+metronome.subscribe(MetronomeEvents.BEAT, 'WM_BEAT', w_metronome,
+                    w_metronome.beat_update, with_data=True)
+metronome.subscribe(MetronomeEvents.BAR, 'WM_BAR', w_metronome,
+                    w_metronome.bar_update, with_data=True)
 lpd8.pad_update()
 lpd8.start()
 osc.start()
@@ -32,9 +49,10 @@ metronome.start()
 # We loop as long as test class allows it
 running = True
 while running:
+    w_bpm.refresh()
+    w_metronome.refresh()
     if screen.key_pressed() == ord('q'):
         running = False
-    screen.refresh()
     sleep(.01)
 
 # We tidy up things and kill all processes
