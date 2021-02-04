@@ -26,6 +26,8 @@ class Metronome(Thread):
         self._paused = True
         self._set_delay()
         self._tick = 0
+        self._pos = 0
+        self._total_ticks = 0
         self._bar = 0
         self._beat = 0
 
@@ -67,20 +69,6 @@ class Metronome(Thread):
         except KeyError:
             return False
 
-    def enable(self, event_type, name):
-        try:
-            self._dispatcher[event_type][name].enable()
-            return True
-        except KeyError:
-            return False
-
-    def disable(self, event_type, name):
-        try:
-            self._dispatcher[event_type][name].disable()
-            return True
-        except KeyError:
-            return False
-
     def get_bpm(self):
         return self._bpm
 
@@ -92,11 +80,39 @@ class Metronome(Thread):
         self._set_delay()
 
     def inc_tick(self):
-        self._tick += 1
-        if self._tick % self._tpb == 0:
+        self._total_ticks += 1
+        self._pos = self._total_ticks % (self._bpb * self._tpb)
+        self._tick = self._total_ticks % self._bpb
+        if self._tick == 0:
             self._beat = (self._beat + 1) % self._bpb
             self.notify(MetronomeEvents.BEAT, beat=self._beat)
             if self._beat == 0:
                 self._bar += 1
                 self.notify(MetronomeEvents.BAR, bar=self._bar)
-        self.notify(MetronomeEvents.TICK, tick=self._tick)
+        self.notify(MetronomeEvents.TICK,
+                    bar=self._bar,
+                    beat=self._beat,
+                    total_ticks=self._total_ticks,
+                    pos=self._pos,
+                    tick=self._tick)
+
+    def set_position(self, bar=0, beat=0, tick=0):
+        if bar >=0 and beat >= 0 and beat <= 3 and tick >= 0 and tick <= 3:
+            self._bar = bar
+            self._beat = beat
+            self._tick = tick
+            self._pos = beat * self._tpb + tick
+            self._total_ticks = bar * self._bpb * self._tpb + beat * self._tpb + tick
+            if tick == 0:
+                self.notify(MetronomeEvents.BEAT, beat=self._beat)
+                if beat == 0:
+                    self.notify(MetronomeEvents.BAR, bar=self._bar)
+            self.notify(MetronomeEvents.TICK,
+                        bar=self._bar,
+                        beat=self._beat,
+                        total_ticks=self._total_ticks,
+                        pos=self._pos,
+                        tick=self._tick)
+            return True
+        else:
+            return False

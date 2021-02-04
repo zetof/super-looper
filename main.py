@@ -38,10 +38,6 @@ lpd8.subscribe(metronome, metronome.pause, Programs.PGM_4, LPD8.NOTE_ON,
 metronome.subscribe(MetronomeEvents.BEAT, lpd8, lpd8.pad_update)
 metronome.subscribe(MetronomeEvents.TICK, w_metronome,
                     w_metronome.tick_update, with_data=True)
-metronome.subscribe(MetronomeEvents.BEAT, w_metronome,
-                    w_metronome.beat_update, with_data=True)
-metronome.subscribe(MetronomeEvents.BAR, w_metronome,
-                    w_metronome.bar_update, with_data=True)
 lpd8.pad_update()
 lpd8.start()
 osc.start()
@@ -51,8 +47,8 @@ metronome.start()
 running = True
 while running:
     screen.refresh()
-    if screen.key_pressed() == ord('q'):
-        running = False
+    if screen.key_pressed() == ord('r'):
+        metronome.set_position(10, 0, 0)
     sleep(.01)
 
 # We tidy up things and kill all processes
