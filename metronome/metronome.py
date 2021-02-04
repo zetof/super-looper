@@ -12,9 +12,9 @@ class MetronomeEvents():
 class Metronome(Thread):
 
     _dispatcher = {
-        MetronomeEvents.TICK: {},
-        MetronomeEvents.BEAT: {},
-        MetronomeEvents.BAR: {}
+        MetronomeEvents.TICK: [],
+        MetronomeEvents.BEAT: [],
+        MetronomeEvents.BAR: []
     }
 
     def __init__(self, bpm=120, bpb=4, tpb=4):
@@ -49,26 +49,19 @@ class Metronome(Thread):
     def is_running(self):
         return self._running
 
-    def subscribe(self, event_type, name, callback_class, callback_method,
+    def subscribe(self, event_type, callback_class, callback_method,
                   enabled=True, with_data=False):
         try:
             subscriber = Subscriber(callback_class, callback_method, enabled,
                                     with_data)
-            self._dispatcher[event_type].update({ name: subscriber })
-            return True
-        except KeyError:
-            return False
-
-    def unsubscribe(self, event_type, name):
-        try:
-            del self._dispatcher[event_type][name]
+            self._dispatcher[event_type].append(subscriber)
             return True
         except KeyError:
             return False
 
     def notify(self, event_type, **kwargs):
         try:
-            for name, subscriber in self._dispatcher[event_type].items():
+            for subscriber in self._dispatcher[event_type]:
                 subscriber.notify(**kwargs)
             return True
         except KeyError:

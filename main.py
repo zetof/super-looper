@@ -35,12 +35,12 @@ lpd8.subscribe(w_bpm, w_bpm.bpm_update, Programs.PGM_4, LPD8.CTRL,
                Knobs.KNOB_1)
 lpd8.subscribe(metronome, metronome.pause, Programs.PGM_4, LPD8.NOTE_ON,
                Pads.PAD_5)
-metronome.subscribe(MetronomeEvents.BEAT, 'BLINK', lpd8, lpd8.pad_update)
-metronome.subscribe(MetronomeEvents.TICK, 'WM_TICK', w_metronome,
+metronome.subscribe(MetronomeEvents.BEAT, lpd8, lpd8.pad_update)
+metronome.subscribe(MetronomeEvents.TICK, w_metronome,
                     w_metronome.tick_update, with_data=True)
-metronome.subscribe(MetronomeEvents.BEAT, 'WM_BEAT', w_metronome,
+metronome.subscribe(MetronomeEvents.BEAT, w_metronome,
                     w_metronome.beat_update, with_data=True)
-metronome.subscribe(MetronomeEvents.BAR, 'WM_BAR', w_metronome,
+metronome.subscribe(MetronomeEvents.BAR, w_metronome,
                     w_metronome.bar_update, with_data=True)
 lpd8.pad_update()
 lpd8.start()
