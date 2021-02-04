@@ -5,42 +5,42 @@ class Window(object):
     Class that implements a base window to be displayed in a Screen object
     """
 
-    def __init__(self, x, y, xw, yw):
+    def __init__(self, x, y, width, height, active):
         """
         Constructor
         :param x horizontal position on the screen
         :param y vertical position on the screen
         :param xw horizontal width of the window
         :param yw vertical width of the window
-        :param cp color pair to use, defaults to white on black
+        :param active ells if the window has to be displayed / refreshed
         """
         self._x = x
         self._y = y
-        self._xw = xw
-        self._yw = yw
-        self._cp = cp
-        self._window = curses.newwin(yw, xw, y, x)
+        self._width = width
+        self._height = height
+        self._active = active
+        self._window = curses.newwin(height, width, y, x)
 
-    def print(self, phrase):
-        self._window.addstr(phrase)
+    def is_active(self):
+       return self._active
 
-    def print_at(self, x, y, phrase):
-        self._window.addstr(y, x, phrase)
+    def set_active(self):
+        self._active = True
 
-    def print_with_color(self, phrase, cp=None):
+    def reset_active(self):
+        self._active = False
+
+    def print(self, string, cp=None, x=None, y=None):
         if cp:
-            self._window.addstr(phrase, curses.color_pair(cp))
+            self._window.attron(curses.color_pair(cp))
+        if x and y:
+            self._window.addstr(y, x, string)
         else:
-            self._window.addstr(phrase, curses.color_pair(self._cp))
-
-    def print_at_with_color(self, x, y, phrase, cp=None):
-        if cp:
-            self._window.addstr(y, x, phrase, curses.color_pair(cp))
-        else:
-            self._window.addstr(y, x, phrase, curses.color_pair(self._cp))
+            self._window.addstr(string)
 
     def erase(self):
         self._window.erase()
 
     def refresh(self):
-        self._window.refresh()
+        if self._active:
+            self._window.refresh()

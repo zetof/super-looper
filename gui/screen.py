@@ -1,11 +1,11 @@
 import curses
 import atexit
 from time import sleep
-from .window import Window
+from .palette import Palette
 
 class Screen:
 
-    _windows = {}
+    _windows = []
 
     def __init__(self):
         self._screen = curses.initscr()
@@ -25,16 +25,18 @@ class Screen:
         self._screen.keypad(True)
         self._screen.nodelay(True)
         self._screen.refresh()
+        Palette()
 
     def key_pressed(self):
         key = self._screen.getch()
         return key
 
     def refresh(self):
-        self._screen.refresh()
+        for window in self._windows:
+            window.refresh()
 
-    def add_window(self, name, window):
-        self._windows.update({ name: window })
+    def add_window(self, window):
+        self._windows.append(window)
 
     def destroy(self):
         self._screen.keypad(False)

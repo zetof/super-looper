@@ -3,10 +3,9 @@ from lpd8.programs import Programs
 from lpd8.pads import Pad, Pads
 from lpd8.knobs import Knobs
 from gui.screen import Screen
-from gui.w_bpm import W_Bpm
-from gui.w_metronome import W_Metronome
+from gui.wbpm import WBpm
+from gui.wmetronome import WMetronome
 from time import sleep
-import curses
 from osc import Osc_Interface
 from metronome.metronome import Metronome, MetronomeEvents
 
@@ -14,9 +13,11 @@ DEFAULT_BPM = 120
 
 # Setting up the interface
 screen = Screen()
-w_bpm = W_Bpm()
+w_bpm = WBpm()
+w_metronome = WMetronome()
+screen.add_window(w_bpm)
+screen.add_window(w_metronome)
 w_bpm.update()
-w_metronome = W_Metronome()
 w_metronome.update()
 
 lpd8 = LPD8()
@@ -49,8 +50,7 @@ metronome.start()
 # We loop as long as test class allows it
 running = True
 while running:
-    w_bpm.refresh()
-    w_metronome.refresh()
+    screen.refresh()
     if screen.key_pressed() == ord('q'):
         running = False
     sleep(.01)
